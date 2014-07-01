@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Blockbuster: Minecraft Movies</title>
+<meta name="author" content="(@henrygarner)"/>
+
+<link rel="stylesheet" href="reveal.js/css/reveal.min.css"/>
+<link rel="stylesheet" href="reveal.js/css/theme/moon.css" id="theme"/>
+<link rel="stylesheet" href="./css/main.css"/>
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section>
+<h1>Blockbuster: Minecraft Movies</h1>
+<h2>@henrygarner</h2>
+<h2><a href="mailto:"></a></h2>
+<h2></h2></section>
+
+<section>
+<section id="sec-1" >
+
+<h2>What I won't be talking about</h2>
+<img src="./images/minecraft-movie.png" alt="minecraft-movie.png" />
+</section>
+
+</section>
+<section>
+<section id="sec-2" >
+
+<h2>Goal</h2>
+<img src="./images/simpsons.png" alt="simpsons.png" />
+</section>
+
+
+</section>
+<section>
+<section id="sec-3" >
+
+<h2>Why Minecraft?</h2>
+<p>
+This grew out of my work teaching kids to code.
+</p>
+
+<p>
+If teaching programming is about teaching problem solving, coding Minecraft means they care about the results.
+</p>
+
+<p>
+Already bindings to Minecraft for Ruby and Python, but I wanted to be able to explore in Clojure.
+</p>
+</section>
+
+
+</section>
+<section>
+<section id="sec-4" >
+
+<h2>Thanks</h2>
+<p>
+Many thanks to Martin O'Hanlon (<a href="http://stuffaboutcode.com">http://stuffaboutcode.com</a>)
+</p>
+
+<p>
+Several Python libraries, including Minecraft Turtle
+</p>
+
+<img src="./images/spirals.jpg" alt="spirals.jpg" />
+</section>
+
+</section>
+<section>
+<section id="sec-5" >
+
+<h2>What I'll be showing you</h2>
+<ul class="org-ul">
+<li>Redstone for interacting with Minecraft
+</li>
+<li>PPM image file format
+</li>
+<li>tools.cli for parsing command line arguments
+</li>
+</ul>
+</section>
+
+</section>
+<section>
+<section id="sec-6" >
+
+<h2>Does Minecraft have a public API?</h2>
+<ul class="org-ul">
+<li>The official game doesn't
+</li>
+<li>The Raspberry Pi version does
+</li>
+</ul>
+
+<p>
+<a href="http://pi.minecraft.net/">http://pi.minecraft.net/</a>
+</p>
+
+<p>
+The API is very limited
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-7" >
+
+<h2>No Pi? No Problem!</h2>
+<ul class="org-ul">
+<li>CraftBukkit is a version of the game server designed for plugin development
+</li>
+<li>RaspberryJuice plugin replicates API
+</li>
+</ul>
+</section>
+
+</section>
+<section>
+<section id="sec-8" >
+
+<h2>Redstone</h2>
+<p>
+A library for interacting with Minecraft: Pi Edition
+</p>
+
+<ul class="org-ul">
+<li>Query the block at a coordinate
+</li>
+<li>Query the player's position
+</li>
+<li>Set blocks at coordinates
+</li>
+<li>Set the player's position
+</li>
+<li>Set a callback on block hit
+</li>
+<li>Send a message to the game chat
+</li>
+</ul>
+</section>
+
+</section>
+<section>
+<section id="sec-9" >
+
+<h2>Example: Query a block</h2>
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(<span style="color: #b2baf6;">require</span> '[redstone.client <span style="color: #3aff83;">:as</span> mc])
+
+(<span style="color: #5af2ee;">def</span> <span style="color: #f09fff;">server</span>
+  {<span style="color: #3aff83;">:host</span> <span style="color: #ff5f87;">"localhost"</span>
+   <span style="color: #3aff83;">:port</span> 4711})
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Query player's tile position (which block are they on?)</span>
+(<span style="color: #5af2ee;">let</span> [player-position (mc/player-tile-position server)
+      position-under-player (<span style="color: #b2baf6;">update-in</span> player-position [<span style="color: #3aff83;">:y</span>] dec)]
+  (<span style="color: #5af2ee;">-&gt;</span> server
+      <span style="color: #f6df92;">;; </span><span style="color: #efc334;">What sort of block is it?</span>
+      (mc/block-at position-under-player))
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-10" >
+
+<h2>Example: Query a block</h2>
+<img src="./images/block-under-player.png" alt="block-under-player.png" />
+</section>
+
+</section>
+<section>
+<section id="sec-11" >
+
+<h2>Blocks are maps</h2>
+<p>
+Minecraft is a world of blocks. There are hundreds of different blocks
+made out of different materials.
+</p>
+
+<p>
+In redstone these are represented as a map.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(mc/block-at position-under-player)
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Might return something like:</span>
+=&gt; {<span style="color: #3aff83;">:id</span> 4 <span style="color: #3aff83;">:data</span> 0}
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-12" >
+
+<h2>Blocks</h2>
+<img src="./images/blocks.png" alt="blocks.png" />
+</section>
+
+</section>
+<section>
+<section id="sec-13" >
+
+<h2>Example: Setting</h2>
+<div class="org-src-container">
+
+<pre  class="src src-clojure"><span style="color: #f6df92;">;; </span><span style="color: #efc334;">Positions are maps too</span>
+(<span style="color: #5af2ee;">def</span> <span style="color: #f09fff;">position</span> {<span style="color: #3aff83;">:x</span> 25 <span style="color: #3aff83;">:y</span> 55 <span style="color: #3aff83;">:z</span> 22})
+
+(mc/set-block-at! server position {<span style="color: #3aff83;">:id</span> 4 <span style="color: #3aff83;">:data</span> 0})
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">...is equivalent to</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:cobblestone</span>)
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Block names are kebab-case...</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:red-flower</span>)
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">...with optional data values</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:red-flower</span>)   <span style="color: #f6df92;">;; </span><span style="color: #efc334;">Poppy</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:red-flower:4</span>) <span style="color: #f6df92;">;; </span><span style="color: #efc334;">Tulip</span>
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-14" >
+
+<h2>Coloured Wool</h2>
+<img src="./images/wool-colours.png" alt="wool-colours.png" />
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(mc/set-block-at! server position <span style="color: #3aff83;">:wool:0</span>) <span style="color: #f6df92;">;; </span><span style="color: #efc334;">White</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:wool:1</span>) <span style="color: #f6df92;">;; </span><span style="color: #efc334;">Orange</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:wool:2</span>) <span style="color: #f6df92;">;; </span><span style="color: #efc334;">Magenta</span>
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">...etc</span>
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Convenience names</span>
+(mc/set-block-at! server position <span style="color: #3aff83;">:red-wool</span>)
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-15" >
+
+<h2>Arguments</h2>
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(<span style="color: #5af2ee;">defprotocol</span> <span style="color: #f09fff;">RPCArgument</span>
+  (as-rpc-arg [_]))
+
+(<span style="color: #b2baf6;">extend-protocol</span> <span style="color: #d020a7;">RPCArgument</span>
+  <span style="color: #d020a7;">clojure.lang.Keyword</span>
+  (as-rpc-arg [kw]
+    (<span style="color: #5af2ee;">when-let</span> [{<span style="color: #3aff83;">:keys</span> [id data]} (<span style="color: #b2baf6;">get</span> name-&gt;block kw)]
+      [id data]))
+
+  <span style="color: #d020a7;">java.lang.Number</span>
+  (as-rpc-arg [x] x)
+
+  <span style="color: #d020a7;">java.lang.String</span>
+  (as-rpc-arg [s] s)
+
+  <span style="color: #d020a7;">java.util.Map</span>
+  (as-rpc-arg [xs]
+    (<span style="color: #b2baf6;">remove</span> nil? ((<span style="color: #b2baf6;">juxt</span> <span style="color: #3aff83;">:x</span> <span style="color: #3aff83;">:y</span> <span style="color: #3aff83;">:z</span> <span style="color: #3aff83;">:id</span> <span style="color: #3aff83;">:data</span>) xs)))
+
+  <span style="color: #d020a7;">java.util.List</span>
+  (as-rpc-arg [xs] (<span style="color: #b2baf6;">flatten</span> (<span style="color: #b2baf6;">map</span> as-rpc-arg xs)))
+
+  <span style="color: #d020a7;">java.lang.Boolean</span>
+  (as-rpc-arg [tf] (<span style="color: #5af2ee;">if</span> tf 1 0)))
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-16" >
+
+<h2>I/O, I/O, it's off to work we go</h2>
+<p>
+Format minecraft consumes:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-text">namespaced.command(list,of,args)
+</pre>
+</div>
+
+<p>
+Redstone API:
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(mc/set-block-at! server {<span style="color: #3aff83;">:x</span> 1 <span style="color: #3aff83;">:y</span> 2 <span style="color: #3aff83;">:z</span> 3} <span style="color: #3aff83;">:red-wool</span>)
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Resolves to:</span>
+<span style="color: #ff5f87;">"world.setBlock(1,2,3,35,14)"</span>
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-17" >
+
+<h2>Query / Command</h2>
+<p>
+Redstone API is just named query and command fns
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(<span style="color: #5af2ee;">def</span> <span style="color: #f09fff;">block-at</span>
+  <span style="color: #ff5f87;">"The block at the specified position"</span>
+  (query <span style="color: #ff5f87;">"world.getBlockWithData"</span>
+         #(<span style="color: #5af2ee;">-&gt;&gt;</span> (s/split % #<span style="color: #ff5f87;">","</span>)
+               (<span style="color: #b2baf6;">map</span> parse-long)
+               (<span style="color: #b2baf6;">zipmap</span> [<span style="color: #3aff83;">:id</span> <span style="color: #3aff83;">:data</span>]))))
+
+(<span style="color: #5af2ee;">def</span> <span style="color: #f09fff;">set-block-at!</span>
+  <span style="color: #ff5f87;">"Sets the block at the given coordinates"</span>
+  (command <span style="color: #ff5f87;">"world.setBlock"</span>))
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-18" >
+
+<h2>Striking gold</h2>
+<div class="org-src-container">
+
+<pre  class="src src-clojure"><span style="color: #f6df92;">;; </span><span style="color: #efc334;">Define a handler</span>
+(<span style="color: #5af2ee;">defn</span> <span style="color: #f09fff;">midas-touch</span> [server event]
+  (mc/set-block-at! server (<span style="color: #3aff83;">:position</span> event) <span style="color: #3aff83;">:gold-block</span>))
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Register the handler</span>
+(mc/listen! server <span style="color: #3aff83;">:block:hit</span> midas-touch)
+</pre>
+</div>
+
+<p>
+Minecraft doesn't support push events, so this is done with polling inside a future.
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-19" >
+
+<h2>What's it good for?</h2>
+<p>
+Originally started working on this around Easter
+</p>
+
+<img src="./images/eggs.png" alt="eggs.png" />
+
+<p>
+Maths!
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-20" >
+
+<h2>Project Icon</h2>
+<p>
+An image for the Redstone README
+</p>
+
+<img src="./images/clojure-logo.png" alt="clojure-logo.png" />
+
+<p>
+Colour dithering, wanted a generic image import
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-21" >
+
+<h2>PPM image format</h2>
+<p>
+It's grossly inefficient, but very easy to read.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-text">P6
+4 4
+255
+000000000000
+000000000000
+000000000000
+000000000000
+</pre>
+</div>
+
+<p>
+&#x2026;a black 4x4 pixel image.
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-22" >
+
+<h2>ImageMagick</h2>
+<p>
+Generating PPMs is easy with ImageMagick
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">$&gt; convert input.png -resize 10 output.ppm
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-23" >
+
+<h2>Reading</h2>
+<ul class="org-ul">
+<li>File contains arbitrary data
+</li>
+<li>Using nio's mmap rather than slurp
+</li>
+</ul>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(<span style="color: #b2baf6;">require</span> '[nio.core <span style="color: #3aff83;">:refer</span> [mmap buffer-seq]])
+
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">Returns a sequence of unsigned byte values (0-255) as longs</span>
+(<span style="color: #5af2ee;">-&gt;&gt;</span> (mmap <span style="color: #ff5f87;">"/file/path.ppm"</span>)
+     buffer-seq
+     (<span style="color: #b2baf6;">map</span> #(<span style="color: #b2baf6;">bit-and</span> % 0xff)))
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-24" >
+
+<h2>RGB</h2>
+<p>
+Stolen from the Clojure docs for min-key
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(<span style="color: #5af2ee;">defn</span> <span style="color: #f09fff;">distance-squared</span> [c1 c2]
+  (<span style="color: #5af2ee;">-&gt;&gt;</span> (<span style="color: #b2baf6;">map</span> - c1 c2)
+       (<span style="color: #b2baf6;">map</span> #(<span style="color: #b2baf6;">*</span> % %))
+       (<span style="color: #b2baf6;">reduce</span> +)))
+
+(<span style="color: #5af2ee;">def</span> <span style="color: #f09fff;">block-colours</span> 
+  {[221 221 221] <span style="color: #3aff83;">:wool</span>
+   [219 126 63] <span style="color: #3aff83;">:orange-wool</span>
+<span style="color: #f6df92;">;; </span><span style="color: #efc334;">...</span>
+   [150 53 49] <span style="color: #3aff83;">:red-wool</span>
+   [26 23 23] <span style="color: #3aff83;">:black-wool</span>})
+
+(<span style="color: #5af2ee;">defn</span> <span style="color: #f09fff;">rgb-&gt;block</span> [colour-map rgb-triple]
+  (colour-map
+   (<span style="color: #b2baf6;">apply</span> min-key (<span style="color: #b2baf6;">partial</span> distance-squared rgb-triple) (<span style="color: #b2baf6;">keys</span> colour-map))))
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-25" >
+
+<h2>What happens if&#x2026;?</h2>
+<img src="./images/bruce.jpg" alt="bruce.jpg" />
+</section>
+
+</section>
+<section>
+<section id="sec-26" >
+
+<h2>What happens if&#x2026;?</h2>
+<img src="./images/what-if.png" alt="what-if.png" />
+</section>
+
+</section>
+<section>
+<section id="sec-27" >
+
+<h2>Bruce Egg</h2>
+<img src="./images/bruce-egg.png" alt="bruce-egg.png" />
+</section>
+
+</section>
+<section>
+<section id="sec-28" >
+
+<h2>The Wizard of Oz</h2>
+<img src="./images/overlord.png" alt="overlord.png" />
+</section>
+
+</section>
+<section>
+<section id="sec-29" >
+
+<h2>Image Sequences</h2>
+<p>
+We can use ffmpeg to convert a movie into a sequence of jpegs.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">$&gt; ffmpeg -i input.mov -y output-dir/%09d.jpg
+</pre>
+</div>
+
+<p>
+Then step through each frame and render it.
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-30" >
+
+<h2>tools.cli</h2>
+<p>
+Parses arguments passed to a `-main` function.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-clojure">(<span style="color: #b2baf6;">require</span> '[clojure.tools.cli <span style="color: #3aff83;">:refer</span> [parse-opts]])
+
+(<span style="color: #5af2ee;">def</span> <span style="color: #f09fff;">cli-options</span>
+  [[<span style="color: #ff5f87;">"-f"</span> <span style="color: #ff5f87;">"--file FILE"</span> <span style="color: #ff5f87;">"File path"</span>]
+   [<span style="color: #ff5f87;">"-w"</span> <span style="color: #ff5f87;">"--width BLOCKS"</span> <span style="color: #ff5f87;">"Width of the screen in blocks"</span>
+    <span style="color: #3aff83;">:parse-fn</span> #(<span style="color: #d020a7;">Long/parseLong</span> %)
+    <span style="color: #3aff83;">:default</span> 25]
+   [<span style="color: #ff5f87;">"-c"</span> <span style="color: #ff5f87;">"--clear"</span> <span style="color: #ff5f87;">"Whether space should be cleared for the screen"</span>]])
+
+(<span style="color: #5af2ee;">defn</span> <span style="color: #f09fff;">-main</span> [&amp; args]
+  (<span style="color: #5af2ee;">let</span> [options (parse-opts args cli-options)]
+    (<span style="color: #5af2ee;">when</span> (<span style="color: #3aff83;">:clear</span> options)
+      (clear-space! options))
+    (draw-movie! options)))
+</pre>
+</div>
+</section>
+
+</section>
+<section>
+<section id="sec-31" >
+
+<h2>Blockbuster</h2>
+<p>
+<a href="https://github.com/henrygarner/blockbuster">https://github.com/henrygarner/blockbuster</a>
+</p>
+
+<p>
+Instructions for Minecraft server installation linked from README
+</p>
+</section>
+
+</section>
+<section>
+<section id="sec-32" >
+
+<h2>Thank You</h2>
+<p>
+<a href="https://github.com/henrygarner/blockbuster">https://github.com/henrygarner/blockbuster</a>
+<a href="https://github.com/henrygarner/ldnclj-talk-july-2014">https://github.com/henrygarner/ldnclj-talk-july-2014</a>
+</p>
+
+<img src="./images/henrygarner.jpeg" alt="henrygarner.jpeg" />
+
+<p>
+@henrygarner
+</p>
+
+<p>
+CTO, Likely
+</p>
+</section>
+</section>
+</div>
+</div>
+
+<script src="reveal.js/lib/js/head.min.js"></script>
+<script src="reveal.js/js/reveal.min.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: true,
+center: true,
+slideNumber: true,
+rollingLinks: false,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+ { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+]
+});
+</script>
+</body>
+</html>
