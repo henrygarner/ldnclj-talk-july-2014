@@ -51,19 +51,19 @@
 <section id="sec-3" >
 
 <h2>Why Minecraft?</h2>
-<p>
-This grew out of my work teaching kids to code.
-</p>
-
-<p>
-If teaching programming is about teaching problem solving, coding Minecraft means they care about the results.
-</p>
+<ul class="org-ul">
+<li>Minecraft being used as a teaching aid
+</li>
+<li>Provides motivating objectives for youngsters
+</li>
+<li>3D world gives immediate feedback
+</li>
+</ul>
 
 <p>
 Already bindings to Minecraft for Ruby and Python, but I wanted to be able to explore in Clojure.
 </p>
 </section>
-
 
 </section>
 <section>
@@ -87,7 +87,7 @@ Several Python libraries, including Minecraft Turtle
 
 <h2>What I'll be showing you</h2>
 <ul class="org-ul">
-<li>Redstone for interacting with Minecraft
+<li>Redstone for interacting with Minecraft from Clojure
 </li>
 <li>PPM image file format
 </li>
@@ -170,6 +170,7 @@ A library for interacting with Minecraft: Pi Edition
 
 <span style="color: #f6df92;">;; </span><span style="color: #efc334;">Query player's tile position (which block are they on?)</span>
 (<span style="color: #5af2ee;">let</span> [player-position (mc/player-tile-position server)
+      <span style="color: #f6df92;">;; </span><span style="color: #efc334;">Position is {:x x, :y y, :z z}</span>
       position-under-player (<span style="color: #b2baf6;">update-in</span> player-position [<span style="color: #3aff83;">:y</span>] dec)]
   (<span style="color: #5af2ee;">-&gt;</span> server
       <span style="color: #f6df92;">;; </span><span style="color: #efc334;">What sort of block is it?</span>
@@ -602,6 +603,7 @@ Instructions for Minecraft server installation linked from README
 
 <h2>Thank You</h2>
 <p>
+<a href="https://github.com/henrygarner/redstone">https://github.com/henrygarner/redstone</a>
 <a href="https://github.com/henrygarner/blockbuster">https://github.com/henrygarner/blockbuster</a>
 <a href="https://github.com/henrygarner/ldnclj-talk-july-2014">https://github.com/henrygarner/ldnclj-talk-july-2014</a>
 </p>

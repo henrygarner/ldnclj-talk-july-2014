@@ -18,12 +18,11 @@
 
 * Why Minecraft?
 
-This grew out of my work teaching kids to code.
-
-If teaching programming is about teaching problem solving, coding Minecraft means they care about the results.
+- Minecraft being used as a teaching aid
+- Provides motivating objectives for youngsters
+- 3D world gives immediate feedback
 
 Already bindings to Minecraft for Ruby and Python, but I wanted to be able to explore in Clojure.
-
 
 * Thanks
 
@@ -35,7 +34,7 @@ Several Python libraries, including Minecraft Turtle
 
 * What I'll be showing you
 
-- Redstone for interacting with Minecraft
+- Redstone for interacting with Minecraft from Clojure
 - PPM image file format
 - tools.cli for parsing command line arguments
 
@@ -75,6 +74,7 @@ A library for interacting with Minecraft: Pi Edition
 
 ;; Query player's tile position (which block are they on?)
 (let [player-position (mc/player-tile-position server)
+      ;; Position is {:x x, :y y, :z z}
       position-under-player (update-in player-position [:y] dec)]
   (-> server
       ;; What sort of block is it?
@@ -343,6 +343,7 @@ https://github.com/henrygarner/blockbuster
 Instructions for Minecraft server installation linked from README
 
 * Thank You
+  https://github.com/henrygarner/redstone
   https://github.com/henrygarner/blockbuster
   [[https://github.com/henrygarner/ldnclj-talk-july-2014]]
 
